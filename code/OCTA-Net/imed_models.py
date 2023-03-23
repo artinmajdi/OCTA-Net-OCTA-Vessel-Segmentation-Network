@@ -22,20 +22,19 @@ class DACblock(nn.Module):
         self.dilate2 = nn.Conv2d(channel, channel, kernel_size=3, dilation=3, padding=3)
         self.dilate3 = nn.Conv2d(channel, channel, kernel_size=3, dilation=5, padding=5)
         self.conv1x1 = nn.Conv2d(channel, channel, kernel_size=1, dilation=1, padding=0)
-        
+
         for m in self.modules():
-            if isinstance(m, nn.Conv2d) or isinstance(m, nn.ConvTranspose2d):
-                if m.bias is not None:
-                    m.bias.data.zero_()
+            if (
+                isinstance(m, (nn.Conv2d, nn.ConvTranspose2d))
+            ) and m.bias is not None:
+                m.bias.data.zero_()
     
     def forward(self, x):
         dilate1_out = nonlinearity(self.dilate1(x))
         dilate2_out = nonlinearity(self.conv1x1(self.dilate2(x)))
         dilate3_out = nonlinearity(self.conv1x1(self.dilate2(self.dilate1(x))))
         dilate4_out = nonlinearity(self.conv1x1(self.dilate3(self.dilate2(self.dilate1(x)))))
-        out = x + dilate1_out + dilate2_out + dilate3_out + dilate4_out
-        
-        return out
+        return x + dilate1_out + dilate2_out + dilate3_out + dilate4_out
 
 
 class SPPblock(nn.Module):
@@ -54,10 +53,8 @@ class SPPblock(nn.Module):
         self.layer2 = F.upsample(self.conv(self.pool2(x)), size=(h, w), mode='bilinear')
         self.layer3 = F.upsample(self.conv(self.pool3(x)), size=(h, w), mode='bilinear')
         self.layer4 = F.upsample(self.conv(self.pool4(x)), size=(h, w), mode='bilinear')
-        
-        out = torch.cat([self.layer1, self.layer2, self.layer3, self.layer4, x], 1)
-        
-        return out
+
+        return torch.cat([self.layer1, self.layer2, self.layer3, self.layer4, x], 1)
 
 
 class DecoderBlock(nn.Module):
@@ -123,11 +120,11 @@ class CE_Net(nn.Module):
         x = self.firstbn(x)
         x = self.firstrelu(x)
         x = self.firstmaxpool(x)
-        
+
         e1 = self.encoder1(x)
         e2 = self.encoder2(e1)
         e3 = self.encoder3(e2)
-        
+
         down_pad = False
         right_pad = False
         if e3.size()[2] % 2 == 1:
@@ -136,33 +133,33 @@ class CE_Net(nn.Module):
         if e3.size()[3] % 2 == 1:
             e3 = F.pad(e3, (0, 1, 0, 0))
             right_pad = True
-        
+
         e4 = self.encoder4(e3)
-        
+
         # Center
         e4 = self.dblock(e4)
         e4 = self.spp(e4)
-        
+
         # Decoder
         if (not down_pad) and (not right_pad):
             d4 = self.decoder4(e4) + e3
         elif down_pad and (not right_pad):
             d4 = self.decoder4(e4)[:, :, :-1, :] + e3[:, :, :-1, :]
-        elif (not down_pad) and right_pad:
+        elif not down_pad:
             d4 = self.decoder4(e4)[:, :, :, :-1] + e3[:, :, :, :-1]
         else:
             d4 = self.decoder4(e4)[:, :, :-1, :-1] + e3[:, :, :-1, :-1]
-        
+
         d3 = self.decoder3(d4) + e2
         d2 = self.decoder2(d3) + e1
         d1 = self.decoder1(d2)
-        
+
         out = self.finaldeconv1(d1)
         out = self.finalrelu1(out)
         out = self.finalconv2(out)
         out = self.finalrelu2(out)
         out = self.finalconv3(out)
-        
+
         return F.sigmoid(out)
 
 
@@ -178,7 +175,7 @@ def deconv(in_channels, out_channels):
 def initialize_weights(*models):
     for model in models:
         for m in model.modules():
-            if isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):
+            if isinstance(m, (nn.Conv2d, nn.Linear)):
                 nn.init.kaiming_normal(m.weight)
                 if m.bias is not None:
                     m.bias.data.zero_()
@@ -220,9 +217,7 @@ class Decoder(nn.Module):
         )
     
     def forward(self, x):
-        out = self.conv(x)
-        
-        return out
+        return self.conv(x)
 
 
 class SpatialAttentionBlock(nn.Module):
@@ -248,9 +243,7 @@ class SpatialAttentionBlock(nn.Module):
         proj_value = self.value(x).view(B, -1, H * W)
         weights = torch.matmul(proj_value, affinity.permute(0, 2, 1))
         weights = weights.view(B, C, H, W)
-        out = self.gamma * weights + x
-        
-        return out
+        return self.gamma * weights + x
 
 
 class ChannelAttentionBlock(nn.Module):
@@ -273,9 +266,7 @@ class ChannelAttentionBlock(nn.Module):
         proj_value = x.view(B, C, -1)
         weights = torch.matmul(affinity_new, proj_value)
         weights = weights.view(B, C, H, W)
-        out = self.gamma * weights + x
-        
-        return out
+        return self.gamma * weights + x
 
 
 class AffinityAttention(nn.Module):
@@ -295,9 +286,7 @@ class AffinityAttention(nn.Module):
         """
         sab = self.sab(x)
         cab = self.cab(x)
-        out = sab + cab
-        
-        return out
+        return sab + cab
 
 
 class CS_Net(nn.Module):

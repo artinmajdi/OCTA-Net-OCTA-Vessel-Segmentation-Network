@@ -13,20 +13,13 @@ def mkdir(path):
     # 去除尾部 \ 符号
     path = path.rstrip("\\")
 
-    # 判断路径是否存在
-    # 存在     True
-    # 不存在   False
-    isExists = os.path.exists(path)
-
-    # 判断结果
-    if not isExists:
-        # 如果不存在则创建目录
-        # 创建目录操作函数
-        os.makedirs(path)
-        return True
-    else:
+    if isExists := os.path.exists(path):
         # 如果目录存在则不创建，并提示目录已存在
         return False
+    # 如果不存在则创建目录
+    # 创建目录操作函数
+    os.makedirs(path)
+    return True
 
 
 # adjust learning rate (poly)
@@ -54,8 +47,8 @@ def build_dataset(dataset, data_dir, channel=1, isTraining=True, crop_size=(64, 
         from fundus_dataset import DRIVE
         database = DRIVE(data_dir, channel=channel, isTraining=isTraining, scale_size=scale_size)
     else:
-        raise NotImplementedError('dataset [%s] is not implemented' % dataset)
-    
+        raise NotImplementedError(f'dataset [{dataset}] is not implemented')
+
     return database
 
 
@@ -78,8 +71,8 @@ def build_model(model, device, channel=1):
         from other_models import SRF_UNet
         net = SRF_UNet(img_ch=channel, output_ch=1).to(device)
     else:
-        raise NotImplementedError('model [%s] is not implemented' % model)
-    
+        raise NotImplementedError(f'model [{model}] is not implemented')
+
     return net
 
 

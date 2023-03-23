@@ -250,7 +250,7 @@ class ResNet(nn.Module):
             downsample = nn.Sequential(*down_layers)
 
         layers = []
-        if dilation == 1 or dilation == 2:
+        if dilation in [1, 2]:
             layers.append(block(self.inplanes, planes, stride, downsample=downsample,
                                 radix=self.radix, cardinality=self.cardinality,
                                 bottleneck_width=self.bottleneck_width,
@@ -269,19 +269,27 @@ class ResNet(nn.Module):
                                 norm_layer=norm_layer, dropblock_prob=dropblock_prob,
                                 last_gamma=self.last_gamma))
         else:
-            raise RuntimeError("=> unknown dilation size: {}".format(dilation))
+            raise RuntimeError(f"=> unknown dilation size: {dilation}")
 
         self.inplanes = planes * block.expansion
-        for i in range(1, blocks):
-            layers.append(block(self.inplanes, planes,
-                                radix=self.radix, cardinality=self.cardinality,
-                                bottleneck_width=self.bottleneck_width,
-                                avd=self.avd, avd_first=self.avd_first,
-                                dilation=dilation, rectified_conv=self.rectified_conv,
-                                rectify_avg=self.rectify_avg,
-                                norm_layer=norm_layer, dropblock_prob=dropblock_prob,
-                                last_gamma=self.last_gamma))
-
+        layers.extend(
+            block(
+                self.inplanes,
+                planes,
+                radix=self.radix,
+                cardinality=self.cardinality,
+                bottleneck_width=self.bottleneck_width,
+                avd=self.avd,
+                avd_first=self.avd_first,
+                dilation=dilation,
+                rectified_conv=self.rectified_conv,
+                rectify_avg=self.rectify_avg,
+                norm_layer=norm_layer,
+                dropblock_prob=dropblock_prob,
+                last_gamma=self.last_gamma,
+            )
+            for _ in range(1, blocks)
+        )
         return nn.Sequential(*layers)
 
     def forward(self, x):

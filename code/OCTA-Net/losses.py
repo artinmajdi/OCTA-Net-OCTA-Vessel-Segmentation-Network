@@ -27,15 +27,13 @@ class dice_loss(nn.Module):
     
     def forward(self, pred, gt):
         assert pred.size() == gt.size() and pred.size()[1] == 1
-        
+
         N = pred.size(0)
         pred_flat = pred.view(N, -1)
         gt_flat = gt.view(N, -1)
         intersection = pred_flat * gt_flat
         dice = (2.0 * intersection.sum(1) + self.eps) / (pred_flat.sum(1) + gt_flat.sum(1) + self.eps)
-        loss = 1.0 - dice.mean()
-        
-        return loss
+        return 1.0 - dice.mean()
 
 
 class focal_loss(nn.Module):
@@ -47,18 +45,13 @@ class focal_loss(nn.Module):
     
     def forward(self, pred, gt):
         assert pred.size() == gt.size() and pred.size()[1] == 1
-        
+
         pred_oh = torch.cat((pred, 1.0 - pred), dim=1)  # [b, 2, h, w]
         gt_oh = torch.cat((gt, 1.0 - gt), dim=1)  # [b, 2, h, w]
         pt = (gt_oh * pred_oh).sum(1)  # [b, h, w]
         focal_map = - self.alpha * torch.pow(1.0 - pt, self.gamma) * torch.log2(clip_by_tensor(pt, 1e-12, 1.0))  # [b, h, w]
-        
-        if self.size_average:
-            loss = focal_map.mean()
-        else:
-            loss = focal_map.sum()
-        
-        return loss
+
+        return focal_map.mean() if self.size_average else focal_map.sum()
 
 
 # 构建损失函数，可扩展
@@ -76,6 +69,6 @@ def build_loss(loss):
     elif loss == "dice":
         criterion = dice_loss()
     else:
-        raise NotImplementedError('loss [%s] is not implemented' % loss)
-    
+        raise NotImplementedError(f'loss [{loss}] is not implemented')
+
     return criterion

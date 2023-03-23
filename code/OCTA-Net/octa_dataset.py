@@ -31,8 +31,8 @@ class ROSE(data.Dataset):
         self.channel = channel
         self.isTraining = isTraining
         self.name = ""
-        
-        assert self.channel == 1 or self.channel == 3, "the channel must be 1 or 3"  # check the channel is 1 or 3
+
+        assert self.channel in [1, 3], "the channel must be 1 or 3"
     
     def __getitem__(self, index):
         """
@@ -47,24 +47,20 @@ class ROSE(data.Dataset):
         gtPath = self.gt_lst[index]
         # deepPath = self.deep_lst[index]
         # superficialPath = self.superficial_lst[index]
-        
+
         simple_transform = transforms.ToTensor()
-        
+
         img = Image.open(imgPath)
         gt = Image.open(gtPath).convert("L")
         # deep = Image.open(deepPath).convert("L")
         # superficial = Image.open(superficialPath).convert("L")
-        
-        if self.channel == 1:
-            img = img.convert("L")
-        else:
-            img = img.convert("RGB")
-        
+
+        img = img.convert("L") if self.channel == 1 else img.convert("RGB")
         gt = np.array(gt)
         gt[gt >= 128] = 255
         gt[gt < 128] = 0
         gt = Image.fromarray(gt)
-        
+
         # deep = np.array(deep)
         # deep[deep >= 128] = 255
         # deep[deep < 128] = 0
@@ -74,7 +70,7 @@ class ROSE(data.Dataset):
         # superficial[superficial >= 128] = 255
         # superficial[superficial < 128] = 0
         # superficial = Image.fromarray(superficial)
-        
+
         if self.isTraining:
             # augumentation
             rotate = 10
@@ -83,12 +79,12 @@ class ROSE(data.Dataset):
             gt = gt.rotate(angel)
             # deep = deep.rotate(angel)
             # superficial = superficial.rotate(angel)
-        
+
         img = simple_transform(img)
         gt = simple_transform(gt)
         # deep = simple_transform(deep)
         # superficial = simple_transform(superficial)
-        
+
         return img, gt
     
     def __len__(self):
@@ -105,22 +101,22 @@ class ROSE(data.Dataset):
         :return:
         """
         if isTraining:
-            img_dir = os.path.join(root + "/train/img")
-            gt_dir = os.path.join(root + "/train/gt")
-            deep_dir = os.path.join(root + "/train/thin_gt")
-            superficial_dir = os.path.join(root + "/train/thick_gt")
+            img_dir = os.path.join(f"{root}/train/img")
+            gt_dir = os.path.join(f"{root}/train/gt")
+            deep_dir = os.path.join(f"{root}/train/thin_gt")
+            superficial_dir = os.path.join(f"{root}/train/thick_gt")
         else:
-            img_dir = os.path.join(root + "/test/img")
-            gt_dir = os.path.join(root + "/test/gt")
-            deep_dir = os.path.join(root + "/test/thin_gt")
-            superficial_dir = os.path.join(root + "/test/thick_gt")
-        
+            img_dir = os.path.join(f"{root}/test/img")
+            gt_dir = os.path.join(f"{root}/test/gt")
+            deep_dir = os.path.join(f"{root}/test/thin_gt")
+            superficial_dir = os.path.join(f"{root}/test/thick_gt")
+
         img_lst = sorted(list(map(lambda x: os.path.join(img_dir, x), os.listdir(img_dir))))
         gt_lst = sorted(list(map(lambda x: os.path.join(gt_dir, x), os.listdir(gt_dir))))
         # deep_lst = sorted(list(map(lambda x: os.path.join(deep_dir, x), os.listdir(deep_dir))))
         # superficial_lst = sorted(list(map(lambda x: os.path.join(superficial_dir, x), os.listdir(superficial_dir))))
 
-        
+
         return img_lst, gt_lst
     
     def getFileName(self):
@@ -135,8 +131,8 @@ class CRIA(data.Dataset):
         self.isTraining = isTraining
         self.scale_size = scale_size
         self.name = ""
-        
-        assert self.channel == 1 or self.channel == 3, "the channel must be 1 or 3"  # check the channel is 1 or 3
+
+        assert self.channel in [1, 3], "the channel must be 1 or 3"
     
     def __getitem__(self, index):
         """
@@ -150,30 +146,26 @@ class CRIA(data.Dataset):
         self.name = imgPath.split("/")[-1]
         gtPath = self.gt_lst[index]
         simple_transform = transforms.ToTensor()
-        
+
         img = Image.open(imgPath)
         gt = Image.open(gtPath).convert("L")
-        
-        if self.channel == 1:
-            img = img.convert("L")
-        else:
-            img = img.convert("RGB")
-        
+
+        img = img.convert("L") if self.channel == 1 else img.convert("RGB")
         gt = np.array(gt)
         gt[gt >= 128] = 255
         gt[gt < 128] = 0
         gt = Image.fromarray(gt)
-        
+
         if self.isTraining:
             # augumentation
             rotate = 10
             angel = random.randint(-rotate, rotate)
             img = img.rotate(angel)
             gt = gt.rotate(angel)
-        
+
         img = simple_transform(img)
         gt = simple_transform(gt)
-        
+
         return img, gt
     
     def __len__(self):
@@ -190,17 +182,17 @@ class CRIA(data.Dataset):
         :return:
         """
         if isTraining:
-            img_dir = os.path.join(root + "/train/original")
-            gt_dir = os.path.join(root + "/train/gt")
+            img_dir = os.path.join(f"{root}/train/original")
+            gt_dir = os.path.join(f"{root}/train/gt")
         else:
-            img_dir = os.path.join(root + "/test/original")
-            gt_dir = os.path.join(root + "/test/gt")
-        
+            img_dir = os.path.join(f"{root}/test/original")
+            gt_dir = os.path.join(f"{root}/test/gt")
+
         img_lst = sorted(list(map(lambda x: os.path.join(img_dir, x), os.listdir(img_dir))))
         gt_lst = sorted(list(map(lambda x: os.path.join(gt_dir, x), os.listdir(gt_dir))))
-        
+
         assert len(img_lst) == len(gt_lst)
-        
+
         return img_lst, gt_lst
     
     def getFileName(self):

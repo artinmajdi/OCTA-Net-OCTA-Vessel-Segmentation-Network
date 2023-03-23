@@ -35,8 +35,8 @@ def resnest50(pretrained=False, root='~/.encoding/models', **kwargs):
                    radix=2, groups=1, bottleneck_width=64,
                    deep_stem=True, stem_width=32, avg_down=True,
                    avd=True, avd_first=False, **kwargs)
-    model_path='../resnest50-528c19ca.pth'  # /home/imed/OCT-A_segmentation/
     if pretrained:
+        model_path='../resnest50-528c19ca.pth'  # /home/imed/OCT-A_segmentation/
         model.load_state_dict(torch.load(model_path))
     return model
 
