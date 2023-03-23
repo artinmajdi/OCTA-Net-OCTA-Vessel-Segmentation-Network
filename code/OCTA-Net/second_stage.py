@@ -52,12 +52,10 @@ def create_conv_bias(channels):
     # [channels, ]
     bias_arr = np.zeros(channels, np.float32)
     assert bias_arr.shape[0] % 2 == 1
-    
+
     bias_arr[bias_arr.shape[0] // 2] = 1.0
     bias_tensor = torch.from_numpy(bias_arr)
-    bias_params = nn.Parameter(data=bias_tensor.contiguous(), requires_grad=True)
-    
-    return bias_params
+    return nn.Parameter(data=bias_tensor.contiguous(), requires_grad=True)
 
 
 class base(nn.Module):
@@ -140,12 +138,8 @@ class adaptive_aggregation(nn.Module):
         map_sal = F.conv2d(input_sal, self.weight, padding=self.kernel_size//2)
         # map_sal_inv = 1.0 - map_sal
         assert agg_coeff.size() == map_sal.size()
-        
-        prod_sal = torch.sum(map_sal * agg_coeff, dim=1).unsqueeze(1)
-        # prod_sal = F.sigmoid(prod_sal)
-        # prod_sal_inv = torch.sum(map_sal_inv * agg_coeff, dim=1).unsqueeze(1)
-        
-        return prod_sal # [b, 1, h, w]
+
+        return torch.sum(map_sal * agg_coeff, dim=1).unsqueeze(1)
 
 
 class fusion(nn.Module):
@@ -156,9 +150,7 @@ class fusion(nn.Module):
     
     def forward(self, input_src, input_thick, input_thin):  # ##
         agg_coeff = self.backbone(input_src, input_thick, input_thin)  # ##
-        prod_sal = self.adagg(input_thick, input_thin, agg_coeff)
-        
-        return prod_sal
+        return self.adagg(input_thick, input_thin, agg_coeff)
 
 
 class FusionSegmenter(nn.Module):
@@ -226,10 +218,5 @@ class focal_loss(nn.Module):
         gt_oh = torch.cat((gt, 1.0 - gt), dim=1)  # [b, 2, h, w]
         pt = (gt_oh * pred).sum(1)  # [b, h, w]
         focal_map = - self.alpha * torch.pow(1.0 - pt, self.gamma) * torch.log2(clip_by_tensor(pt, 1e-12, 1.0))  # [b, h, w]
-        
-        if self.size_average:
-            loss = focal_map.mean()
-        else:
-            loss = focal_map.sum()
-        
-        return loss
+
+        return focal_map.mean() if self.size_average else focal_map.sum()

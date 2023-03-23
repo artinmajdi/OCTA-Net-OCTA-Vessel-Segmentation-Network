@@ -16,14 +16,14 @@ args = parser.parse_args()
 prob_lst = sorted(os.listdir(args.prob_dir))
 pred_lst = sorted(os.listdir(args.pred_dir))
 gt_lst = sorted(os.listdir(args.gt_dir))
-assert len(prob_lst) == len(pred_lst) and len(pred_lst) == len(gt_lst)
+assert len(prob_lst) == len(pred_lst) == len(gt_lst)
 
 metric_dct = {"auc": [], "acc": [], "sen": [], "spe": [], "gmean": [], "kappa": [], "fdr": [], "iou": [], "dice": []}
 for i in range(len(pred_lst)):
     prob_arr = cv2.imread(os.path.join(args.prob_dir, prob_lst[i]), 0) / 255.0
     pred_arr = cv2.imread(os.path.join(args.pred_dir, pred_lst[i]), 0) // 255
     gt_arr = cv2.imread(os.path.join(args.gt_dir, gt_lst[i]), 0) // 255
-    
+
     metric_dct["auc"].append(calc_auc(prob_arr, gt_arr))
     metric_dct["acc"].append(calc_acc(pred_arr, gt_arr))
     metric_dct["sen"].append(calc_sen(pred_arr, gt_arr))

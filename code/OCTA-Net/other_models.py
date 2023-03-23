@@ -21,14 +21,16 @@ def init_weights(net, init_type='normal', gain=0.02):
             elif init_type == 'orthogonal':
                 init.orthogonal_(m.weight.data, gain=gain)
             else:
-                raise NotImplementedError('initialization method [%s] is not implemented' % init_type)
+                raise NotImplementedError(
+                    f'initialization method [{init_type}] is not implemented'
+                )
             if hasattr(m, 'bias') and m.bias is not None:
                 init.constant_(m.bias.data, 0.0)
         elif classname.find('BatchNorm2d') != -1:
             init.normal_(m.weight.data, 1.0, gain)
             init.constant_(m.bias.data, 0.0)
-    
-    print('initialize network with %s' % init_type)
+
+    print(f'initialize network with {init_type}')
     net.apply(init_func)
 
 
@@ -198,41 +200,39 @@ class U_Net(nn.Module):
     def forward(self, x):
         # encoding path
         x1 = self.Conv1(x)
-        
+
         x2 = self.Maxpool(x1)
         x2 = self.Conv2(x2)
-        
+
         x3 = self.Maxpool(x2)
         x3 = self.Conv3(x3)
-        
+
         x4 = self.Maxpool(x3)
         x4 = self.Conv4(x4)
-        
+
         x5 = self.Maxpool(x4)
         x5 = self.Conv5(x5)
-        
+
         # decoding + concat path
         d5 = self.Up5(x5)
         d5 = torch.cat((x4, d5), dim=1)
-        
+
         d5 = self.Up_conv5(d5)
-        
+
         d4 = self.Up4(d5)
         d4 = torch.cat((x3, d4), dim=1)
         d4 = self.Up_conv4(d4)
-        
+
         d3 = self.Up3(d4)
         d3 = torch.cat((x2, d3), dim=1)
         d3 = self.Up_conv3(d3)
-        
+
         d2 = self.Up2(d3)
         d2 = torch.cat((x1, d2), dim=1)
         d2 = self.Up_conv2(d2)
-        
+
         d1 = self.Conv_1x1(d2)
-        out = nn.Sigmoid()(d1)
-        
-        return out
+        return nn.Sigmoid()(d1)
 
 
 # #########--------- Networks ---------#########
@@ -259,9 +259,7 @@ class DAB(nn.Module):
 
         final_com = fea_com * w_com.unsqueeze(dim=-1).unsqueeze(dim=-1).expand_as(fea_com)  # b, c, h, w
         final_diff = fea_diff * w_diff.unsqueeze(dim=-1).unsqueeze(dim=-1).expand_as(fea_diff)  # b, c, h, w
-        final_out = torch.cat((final_com,final_diff),dim=1)  # b, c, h, w
-
-        return final_out
+        return torch.cat((final_com,final_diff),dim=1)
 
 
 class SRF_UNet(nn.Module):
@@ -368,9 +366,7 @@ class SRF_UNet(nn.Module):
         d2 = self.Up_conv1_thick(d2)
 
         d1 = self.Conv_1x1_thick(d2)
-        out = nn.Sigmoid()(d1)
-
-        return out
+        return nn.Sigmoid()(d1)
 
 
 class ResUNet(nn.Module):
@@ -435,9 +431,7 @@ class ResUNet(nn.Module):
         d2 = self.Up_conv1(d2)
 
         d1 = self.Conv_1x1(d2)
-        out = nn.Sigmoid()(d1)
-
-        return out
+        return nn.Sigmoid()(d1)
 
 
 class R2U_Net(nn.Module):
@@ -469,40 +463,38 @@ class R2U_Net(nn.Module):
     def forward(self, x):
         # encoding path
         x1 = self.RRCNN1(x)
-        
+
         x2 = self.Maxpool(x1)
         x2 = self.RRCNN2(x2)
-        
+
         x3 = self.Maxpool(x2)
         x3 = self.RRCNN3(x3)
-        
+
         x4 = self.Maxpool(x3)
         x4 = self.RRCNN4(x4)
-        
+
         x5 = self.Maxpool(x4)
         x5 = self.RRCNN5(x5)
-        
+
         # decoding + concat path
         d5 = self.Up5(x5)
         d5 = torch.cat((x4, d5), dim=1)
         d5 = self.Up_RRCNN5(d5)
-        
+
         d4 = self.Up4(d5)
         d4 = torch.cat((x3, d4), dim=1)
         d4 = self.Up_RRCNN4(d4)
-        
+
         d3 = self.Up3(d4)
         d3 = torch.cat((x2, d3), dim=1)
         d3 = self.Up_RRCNN3(d3)
-        
+
         d2 = self.Up2(d3)
         d2 = torch.cat((x1, d2), dim=1)
         d2 = self.Up_RRCNN2(d2)
-        
+
         d1 = self.Conv_1x1(d2)
-        out = nn.Sigmoid()(d1)
-        
-        return out
+        return nn.Sigmoid()(d1)
 
 
 class AttU_Net(nn.Module):
@@ -537,44 +529,42 @@ class AttU_Net(nn.Module):
     def forward(self, x):
         # encoding path
         x1 = self.Conv1(x)
-        
+
         x2 = self.Maxpool(x1)
         x2 = self.Conv2(x2)
-        
+
         x3 = self.Maxpool(x2)
         x3 = self.Conv3(x3)
 
         x4 = self.Maxpool(x3)
         x4 = self.Conv4(x4)
-        
+
         x5 = self.Maxpool(x4)
         x5 = self.Conv5(x5)
-        
+
         # decoding + concat path
         d5 = self.Up5(x5)
         x4 = self.Att5(g=d5, x=x4)
-        d5 = torch.cat((x4, d5), dim=1)        
+        d5 = torch.cat((x4, d5), dim=1)
         d5 = self.Up_conv5(d5)
-        
+
         d4 = self.Up4(d5)
         x3 = self.Att4(g=d4, x=x3)
         d4 = torch.cat((x3, d4), dim=1)
         d4 = self.Up_conv4(d4)
-        
+
         d3 = self.Up3(d4)
         x2 = self.Att3(g=d3, x=x2)
         d3 = torch.cat((x2, d3), dim=1)
         d3 = self.Up_conv3(d3)
-        
+
         d2 = self.Up2(d3)
         x1 = self.Att2(g=d2, x=x1)
         d2 = torch.cat((x1, d2), dim=1)
         d2 = self.Up_conv2(d2)
-        
+
         d1 = self.Conv_1x1(d2)
-        out = nn.Sigmoid()(d1)
-        
-        return out
+        return nn.Sigmoid()(d1)
 
 
 class AttResU_Net(nn.Module):
@@ -609,44 +599,42 @@ class AttResU_Net(nn.Module):
     def forward(self, x):
         # encoding path
         x1 = self.Conv1(x)
-        
+
         x2 = self.Maxpool(x1)
         x2 = self.Conv2(x2)
-        
+
         x3 = self.Maxpool(x2)
         x3 = self.Conv3(x3)
-        
+
         x4 = self.Maxpool(x3)
         x4 = self.Conv4(x4)
-        
+
         x5 = self.Maxpool(x4)
         x5 = self.Conv5(x5)
-        
+
         # decoding + concat path
         d5 = self.Up5(x5)
         x4 = self.Att5(g=d5, x=x4)
         d5 = torch.cat((x4, d5), dim=1)
         d5 = self.Up_conv5(d5)
-        
+
         d4 = self.Up4(d5)
         x3 = self.Att4(g=d4, x=x3)
         d4 = torch.cat((x3, d4), dim=1)
         d4 = self.Up_conv4(d4)
-        
+
         d3 = self.Up3(d4)
         x2 = self.Att3(g=d3, x=x2)
         d3 = torch.cat((x2, d3), dim=1)
         d3 = self.Up_conv3(d3)
-        
+
         d2 = self.Up2(d3)
         x1 = self.Att2(g=d2, x=x1)
         d2 = torch.cat((x1, d2), dim=1)
         d2 = self.Up_conv2(d2)
-        
+
         d1 = self.Conv_1x1(d2)
-        out = nn.Sigmoid()(d1)
-        
-        return out
+        return nn.Sigmoid()(d1)
 
 
 class R2AttU_Net(nn.Module):
@@ -682,41 +670,39 @@ class R2AttU_Net(nn.Module):
     def forward(self, x):
         # encoding path
         x1 = self.RRCNN1(x)
-        
+
         x2 = self.Maxpool(x1)
         x2 = self.RRCNN2(x2)
-        
+
         x3 = self.Maxpool(x2)
         x3 = self.RRCNN3(x3)
-        
+
         x4 = self.Maxpool(x3)
         x4 = self.RRCNN4(x4)
-        
+
         x5 = self.Maxpool(x4)
         x5 = self.RRCNN5(x5)
-        
+
         # decoding + concat path
         d5 = self.Up5(x5)
         x4 = self.Att5(g=d5, x=x4)
         d5 = torch.cat((x4, d5), dim=1)
         d5 = self.Up_RRCNN5(d5)
-        
+
         d4 = self.Up4(d5)
         x3 = self.Att4(g=d4, x=x3)
         d4 = torch.cat((x3, d4), dim=1)
         d4 = self.Up_RRCNN4(d4)
-        
+
         d3 = self.Up3(d4)
         x2 = self.Att3(g=d3, x=x2)
         d3 = torch.cat((x2, d3), dim=1)
         d3 = self.Up_RRCNN3(d3)
-        
+
         d2 = self.Up2(d3)
         x1 = self.Att2(g=d2, x=x1)
         d2 = torch.cat((x1, d2), dim=1)
         d2 = self.Up_RRCNN2(d2)
-        
+
         d1 = self.Conv_1x1(d2)
-        out = nn.Sigmoid()(d1)
-        
-        return out
+        return nn.Sigmoid()(d1)

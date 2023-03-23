@@ -26,25 +26,28 @@ rosea_method_lst = ["IPAC", "COSFIRE", "COOF", "U-Net", "ResU-Net", "CE-Net", "D
 rosea_color_lst = ["y", "b", "g", "r", "y", "b", "g", "r", "y", "b", "g", "r"]
 rosea_marker_lst = ["+", "x", "o", "d", "*", "s", "+", "x", "o", "d", "*", "s"]
 rosea_linestyle_lst = ["-.", "--", "-", "-.", "--", "-", "-.", "--", "-", "-.", "--", "-"]
-assert len(rosea_method_lst) == len(rosea_color_lst) and len(rosea_color_lst) == len(rosea_linestyle_lst)
+assert (
+    len(rosea_method_lst) == len(rosea_color_lst) == len(rosea_linestyle_lst)
+)
 
 rosea_zip = list(zip(rosea_color_lst, rosea_marker_lst, rosea_linestyle_lst))
 rosea_dct = dict(zip(rosea_method_lst, rosea_zip))
 gt_lst = sorted(os.listdir("ROSE-A_results/all/gt"))
-gt_arr_lst = []
-for gt in gt_lst:
-    gt_arr_lst.append(cv2.imread("ROSE-A_results/all/gt/" + gt, 0) // 255)
+gt_arr_lst = [
+    cv2.imread(f"ROSE-A_results/all/gt/{gt}", 0) // 255 for gt in gt_lst
+]
 gt_vec = np.stack(gt_arr_lst, axis=0).reshape(-1)
 
 
 for rosea_method in rosea_method_lst:
-    prob_lst = sorted(os.listdir("ROSE-A_results/all/" + rosea_method + "/prob"))
+    prob_lst = sorted(os.listdir(f"ROSE-A_results/all/{rosea_method}/prob"))
     assert len(prob_lst) == len(gt_lst)
-    
-    prob_arr_lst = []
-    for i in range(len(gt_lst)):
-        prob_arr_lst.append(cv2.imread("ROSE-A_results/all/" + rosea_method + "/prob/" + prob_lst[i], 0) / 255.0)
-    
+
+    prob_arr_lst = [
+        cv2.imread(f"ROSE-A_results/all/{rosea_method}/prob/{prob_lst[i]}", 0)
+        / 255.0
+        for i in range(len(gt_lst))
+    ]
     prob_vec = np.stack(prob_arr_lst, axis=0).reshape(-1)
     fpr, tpr, thresholds = metrics.roc_curve(gt_vec, prob_vec, pos_label=1)
     roc_auc = metrics.roc_auc_score(gt_vec, prob_vec)
@@ -89,25 +92,28 @@ roseb_method_lst = ["IPAC", "COSFIRE", "COOF", "U-Net", "ResU-Net", "CE-Net", "D
 roseb_color_lst = ["lightcoral", "yellow", "cyan", "red", "lime", "purple", "orange", "gray", "blue", "green", "deeppink"]
 roseb_marker_lst = ["+", "x", "o", "d", "*", "s", "+", "x", "o", "d", "s"]
 roseb_linestyle_lst = ["-.", "--", "-", "-.", "--", "-", "-.", "--", "-", "-.", "-"]
-assert len(roseb_method_lst) == len(roseb_color_lst) and len(roseb_color_lst) == len(roseb_linestyle_lst)
+assert (
+    len(roseb_method_lst) == len(roseb_color_lst) == len(roseb_linestyle_lst)
+)
 
 roseb_zip = list(zip(roseb_color_lst, roseb_marker_lst, roseb_linestyle_lst))
 roseb_dct = dict(zip(roseb_method_lst, roseb_zip))
 gt_lst = sorted(os.listdir("ROSE-B_opt_results/gt"))
-gt_arr_lst = []
-for gt in gt_lst:
-    gt_arr_lst.append(cv2.imread("ROSE-B_opt_results/gt/" + gt, 0) // 255)
+gt_arr_lst = [
+    cv2.imread(f"ROSE-B_opt_results/gt/{gt}", 0) // 255 for gt in gt_lst
+]
 gt_vec = np.stack(gt_arr_lst, axis=0).reshape(-1)
 
 
 for roseb_method in roseb_method_lst:
-    prob_lst = sorted(os.listdir("ROSE-B_opt_results/" + roseb_method + "/prob"))
+    prob_lst = sorted(os.listdir(f"ROSE-B_opt_results/{roseb_method}/prob"))
     assert len(prob_lst) == len(gt_lst)
-    
-    prob_arr_lst = []
-    for i in range(len(gt_lst)):
-        prob_arr_lst.append(cv2.imread("ROSE-B_opt_results/" + roseb_method + "/prob/" + prob_lst[i], 0) / 255.0)
-    
+
+    prob_arr_lst = [
+        cv2.imread(f"ROSE-B_opt_results/{roseb_method}/prob/{prob_lst[i]}", 0)
+        / 255.0
+        for i in range(len(gt_lst))
+    ]
     prob_vec = np.stack(prob_arr_lst, axis=0).reshape(-1)
     fpr, tpr, thresholds = metrics.roc_curve(gt_vec, prob_vec, pos_label=1)
     roc_auc = metrics.roc_auc_score(gt_vec, prob_vec)

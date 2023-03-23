@@ -18,29 +18,29 @@ def visual_results(loss_arr, auc_arr, acc_arr, sen_arr, fdr_arr, spe_arr, kappa_
     gmean_mean = gmean_arr.mean()
     iou_mean = iou_arr.mean()
     dice_mean = dice_arr.mean()
-    
-    viz.plot("val" + flag + " loss", loss_mean)
-    viz.plot("val" + flag + " auc", auc_mean)
-    viz.plot("val" + flag + " acc", acc_mean)
-    viz.plot("val" + flag + " sen", sen_mean)
-    viz.plot("val" + flag + " fdr", fdr_mean)
-    viz.plot("val" + flag + " spe", spe_mean)
-    viz.plot("val" + flag + " kappa", kappa_mean)
-    viz.plot("val" + flag + " gmean", gmean_mean)
-    viz.plot("val" + flag + " iou", iou_mean)
-    viz.plot("val" + flag + " dice", dice_mean)
-    
-    writer.add_scalars("val" + flag + "_loss", {"val" + flag + "_loss": loss_mean}, epoch)
-    writer.add_scalars("val" + flag + "_auc", {"val" + flag + "_auc": auc_mean}, epoch)
-    writer.add_scalars("val" + flag + "_acc", {"val" + flag + "_acc": acc_mean}, epoch)
-    writer.add_scalars("val" + flag + "_sen", {"val" + flag + "_sen": sen_mean}, epoch)
-    writer.add_scalars("val" + flag + "_fdr", {"val" + flag + "_fdr": fdr_mean}, epoch)
-    writer.add_scalars("val" + flag + "_spe", {"val" + flag + "_spe": spe_mean}, epoch)
-    writer.add_scalars("val" + flag + "_kappa", {"val" + flag + "_kappa": kappa_mean}, epoch)
-    writer.add_scalars("val" + flag + "_gmean", {"val" + flag + "_gmean": gmean_mean}, epoch)
-    writer.add_scalars("val" + flag + "_iou", {"val" + flag + "_iou": iou_mean}, epoch)
-    writer.add_scalars("val" + flag + "_dice", {"val" + flag + "_dice": dice_mean}, epoch)
-    
+
+    viz.plot(f"val{flag} loss", loss_mean)
+    viz.plot(f"val{flag} auc", auc_mean)
+    viz.plot(f"val{flag} acc", acc_mean)
+    viz.plot(f"val{flag} sen", sen_mean)
+    viz.plot(f"val{flag} fdr", fdr_mean)
+    viz.plot(f"val{flag} spe", spe_mean)
+    viz.plot(f"val{flag} kappa", kappa_mean)
+    viz.plot(f"val{flag} gmean", gmean_mean)
+    viz.plot(f"val{flag} iou", iou_mean)
+    viz.plot(f"val{flag} dice", dice_mean)
+
+    writer.add_scalars(f"val{flag}_loss", {f"val{flag}_loss": loss_mean}, epoch)
+    writer.add_scalars(f"val{flag}_auc", {f"val{flag}_auc": auc_mean}, epoch)
+    writer.add_scalars(f"val{flag}_acc", {f"val{flag}_acc": acc_mean}, epoch)
+    writer.add_scalars(f"val{flag}_sen", {f"val{flag}_sen": sen_mean}, epoch)
+    writer.add_scalars(f"val{flag}_fdr", {f"val{flag}_fdr": fdr_mean}, epoch)
+    writer.add_scalars(f"val{flag}_spe", {f"val{flag}_spe": spe_mean}, epoch)
+    writer.add_scalars(f"val{flag}_kappa", {f"val{flag}_kappa": kappa_mean}, epoch)
+    writer.add_scalars(f"val{flag}_gmean", {f"val{flag}_gmean": gmean_mean}, epoch)
+    writer.add_scalars(f"val{flag}_iou", {f"val{flag}_iou": iou_mean}, epoch)
+    writer.add_scalars(f"val{flag}_dice", {f"val{flag}_dice": dice_mean}, epoch)
+
     return auc_mean
 
 
